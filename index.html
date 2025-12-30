@@ -387,7 +387,7 @@
         
         // Configuration for default video - using video.mp4
         const DEFAULT_VIDEO_CONFIG = {
-            localVideo: '/video.mp4',
+            videoUrl: 'https://footprintgen.github.io/chat-app/video.mp4',
             title: '🎬 Welcome to Our Chat Room!',
             description: 'Watch this introduction to get started with our chat features',
             autoplay: false,
@@ -460,13 +460,7 @@
                 socket = null;
             }
             
-            socket = io({
-                reconnection: true,
-                reconnectionAttempts: 5,
-                reconnectionDelay: 1000,
-                reconnectionDelayMax: 5000,
-                timeout: 20000
-            });
+            socket = io('https://chat-app-yibl.onrender.com');
             
             socket.on('connect', () => {
                 console.log('Connected to server');

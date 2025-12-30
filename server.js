@@ -5,7 +5,12 @@ const path = require('path');
 
 const app = express();
 const server = http.createServer(app);
-const io = socketIO(server);
+const io = socketIO(server, {
+cors: {
+origin: "https://footprintgen.github.io/chat-app/",
+methods: ["GET", "POST"]
+}
+});
 
 // Serve static files
 app.use(express.static('public'));
