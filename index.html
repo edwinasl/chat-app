@@ -31,8 +31,6 @@
             display: flex;
             flex-direction: column;
             overflow: hidden;
-            position: relative; /* ADD THIS */
-            z-index: 1; /* ADD THIS */
         }
         
         .chat-header {
@@ -156,11 +154,6 @@
             font-size: 16px;
         }
         
-        #messageInput:focus {
-            outline: none;
-            border-color: #667eea;
-        }
-        
         .button {
             padding: 10px 20px;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -239,13 +232,11 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            z-index: 2000; /* CHANGE from 1000 to 2000 */
-            pointer-events: auto; /* ADD THIS */
+            z-index: 1000;
         }
         
         .username-modal.hidden {
-            display: none !important; /* ADD !important */
-            pointer-events: none; /* ADD THIS */
+            display: none;
         }
         
         .username-form {
@@ -254,7 +245,6 @@
             border-radius: 20px;
             width: 90%;
             max-width: 400px;
-            pointer-events: auto; /* ADD THIS */
         }
         
         .username-form h2 {
@@ -271,11 +261,6 @@
             font-size: 16px;
         }
         
-        .username-form input:focus {
-            outline: none;
-            border-color: #667eea;
-        }
-        
         .username-form button {
             width: 100%;
             padding: 10px;
@@ -285,10 +270,6 @@
             border-radius: 10px;
             cursor: pointer;
             font-size: 16px;
-        }
-        
-        .username-form button:hover {
-            opacity: 0.9;
         }
 
         .connection-status {
@@ -354,7 +335,7 @@
         <div class="username-form">
             <h2>Welcome to Video Chat!</h2>
             <input type="text" id="usernameInput" placeholder="Enter your username..." autocomplete="off" autofocus>
-            <button id="joinButton">Join Chat</button> <!-- ADD ID -->
+            <button id="joinButton">Join Chat</button>
         </div>
     </div>
 
@@ -365,7 +346,7 @@
         </div>
         
         <div class="chat-messages" id="chatMessages">
-            <!-- Messages will appear here -->
+            <!-- Default Welcome Video will be added here -->
         </div>
         
         <div class="chat-input-container">
@@ -384,8 +365,8 @@
     <div class="video-preview" id="videoPreview">
         <video id="previewVideo" controls></video>
         <div class="video-preview-actions">
-            <button class="button" id="sendVideoBtn">Send</button> <!-- ADD ID -->
-            <button class="button" id="cancelVideoBtn">Cancel</button> <!-- ADD ID -->
+            <button class="button" id="sendVideoBtn">Send</button>
+            <button class="button" id="cancelVideoBtn">Cancel</button>
         </div>
     </div>
     
@@ -424,9 +405,7 @@
                 <div class="welcome-video-container">
                     <video 
                         class="welcome-video" 
-                        controls 
-                        ${DEFAULT_VIDEO_CONFIG.autoplay ? 'autoplay' : ''} 
-                        ${DEFAULT_VIDEO_CONFIG.muted ? 'muted' : ''}>
+                        controls>
                         <source src="${DEFAULT_VIDEO_CONFIG.videoUrl}" type="video/mp4">
                         Your browser does not support the video tag.
                     </video>
@@ -438,7 +417,7 @@
             messagesDiv.appendChild(welcomeDiv);
             
             setTimeout(() => {
-                addSystemMessage('Welcome! Feel free to start chatting or share your own videos!');
+                addSystemMessage('Welcome! Feel free to start chatting!');
             }, 1000);
             
             welcomeVideoShown = true;
@@ -451,10 +430,7 @@
             currentUser = { username: username };
             localStorage.setItem('chatUsername', username);
             
-            // Properly hide the modal
-            const modal = document.getElementById('usernameModal');
-            modal.classList.add('hidden');
-            modal.style.display = 'none'; // Force hide
+            document.getElementById('usernameModal').classList.add('hidden');
             
             showWelcomeVideo();
             initializeSocket();
@@ -498,21 +474,12 @@
                 updateConnectionStatus('disconnected');
             });
             
+            socket.on('reconnecting', (attemptNumber) => {
+                console.log('Attempting to reconnect...', attemptNumber);
+                updateConnectionStatus('reconnecting');
+            });
+            
             socket.on('message-history', (messages) => {
-                const messagesDiv = document.getElementById('chatMessages');
-                const welcomeVideo = messagesDiv.querySelector('.system-video');
-                const systemMessages = messagesDiv.querySelectorAll('.system-message');
-                
-                messagesDiv.innerHTML = '';
-                
-                if (welcomeVideo) {
-                    messagesDiv.appendChild(welcomeVideo);
-                }
-                
-                if (systemMessages.length > 0) {
-                    messagesDiv.appendChild(systemMessages[0]);
-                }
-                
                 messages.forEach(msg => addMessage(msg));
             });
             
@@ -560,15 +527,7 @@
             messageDiv.className = 'message' + (message.userId === currentUser.id ? ' own' : '');
             
             let content = `<div class="message-username">${escapeHtml(message.username)}</div>`;
-            
-            if (message.type === 'video' && message.videoUrl) {
-                content += `<video controls class="message-video">
-                    <source src="${escapeHtml(message.videoUrl)}" type="video/mp4">
-                    Your browser does not support video.
-                </video>`;
-            } else {
-                content += `<div>${escapeHtml(message.text || '')}</div>`;
-            }
+            content += `<div>${escapeHtml(message.text || '')}</div>`;
             
             const time = new Date(message.timestamp).toLocaleTimeString([], { 
                 hour: '2-digit', 
@@ -637,14 +596,6 @@
         }
         
         function sendVideo() {
-            if (!selectedVideoFile || !socket || !isConnected) {
-                if (!isConnected) {
-                    alert('Please wait for connection to be established');
-                }
-                return;
-            }
-            
-            // For now, just show an alert since video upload isn't implemented on server
             alert('Video upload feature is not yet implemented on the server.');
             cancelVideo();
         }
@@ -667,7 +618,7 @@
         }
         
         // Event Listeners
-        document.addEventListener('DOMContentLoaded', () => {
+        window.addEventListener('DOMContentLoaded', () => {
             // Join button
             document.getElementById('joinButton').addEventListener('click', joinChat);
             
