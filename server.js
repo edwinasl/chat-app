@@ -30,9 +30,12 @@ io.on('connection', (socket) => {
     
     // Handle user joining
     socket.on('user-join', (username) => {
+        // Validate username (optional improvement)
+        const finalUsername = username?.trim() || `User${Math.floor(Math.random() * 1000)}`;
+        
         activeUsers.set(socket.id, {
             id: socket.id,
-            username: username || `User${Math.floor(Math.random() * 1000)}`,
+            username: finalUsername,
             joinedAt: new Date()
         });
         
@@ -51,10 +54,15 @@ io.on('connection', (socket) => {
     
     // Handle incoming messages
     socket.on('send-message', (data) => {
+        // Validate message (optional improvement)
+        if (!data.text || data.text.trim() === '') {
+            return; // Don't process empty messages
+        }
+        
         const user = activeUsers.get(socket.id);
         const message = {
             id: Date.now() + Math.random(),
-            text: data.text,
+            text: data.text.trim(),  // Trim whitespace
             username: user ? user.username : 'Anonymous',
             userId: socket.id,
             timestamp: new Date().toISOString()
