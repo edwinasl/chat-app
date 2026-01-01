@@ -51,6 +51,32 @@ io.on('connection', (socket) => {
         // Send updated user list to all clients
         io.emit('users-update', Array.from(activeUsers.values()));
     });
+
+    // Admin functions
+    // Send current messages to admin panel
+    socket.on('admin-request-messages', () => {
+        console.log('🔧 Admin requested messages');
+        console.log(`📊 Current message count: ${messages.length}`);
+        console.log('📋 Messages:', JSON.stringify(messages, null, 2));
+        
+        // Send messages to admin
+        socket.emit('admin-messages-data', messages);
+        console.log('✉️ Sent messages to admin');
+    });
+    
+    // Clear all messages
+    socket.on('admin-clear-messages', () => {
+        console.log('🗑️ Admin clearing messages');
+        console.log(`Before clear: ${messages.length} messages`);
+        messages = [];
+        console.log(`After clear: ${messages.length} messages`);
+        
+        // Notify admin panel
+        socket.emit('admin-clear-success');
+        
+        // Notify all chat clients to clear their messages
+        io.emit('messages-cleared');
+    });
     
     // Handle incoming messages
     socket.on('send-message', (data) => {
