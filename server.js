@@ -34,7 +34,7 @@ let activeUsers = new Map();
 // ROUTES - Define these OUTSIDE of socket connection
 // Redirect root to index.html
 app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'index.html'));
+    res.sendFile(path.join(__dirname, 'index.html'));
 });
 
 // Serve admin.html explicitly
